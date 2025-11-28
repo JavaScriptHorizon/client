@@ -9,15 +9,15 @@ import Footer from "./components/shared/footer";
 
 const App: React.FC = () => {
   return (
-    <div className="px-4 space-y-3">
+    <div className="px-4 space-y-4 max-w-7xl mx-auto">
       <Navbar />
-      <div className="max-w-7xl mx-auto">
-        <Routes>
-          {routes.map(({ path, element }, index) => (
-            <Route key={index} {...{ path, element }} />
-          ))}
-        </Routes>
-      </div>
+
+      <Routes>
+        {routes.map(({ path, element }, index) => (
+          <Route key={index} {...{ path, element }} />
+        ))}
+      </Routes>
+
       <Footer />
     </div>
   );

@@ -22,7 +22,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="space-y-6 w-full h-auto py-8 border-t mt-10">
+    <footer className="space-y-6 w-full h-auto py-8 border-t">
       <div className="flex flex-col items-center gap-4">
         <h1 className="text-2xl md:text-3xl font-semibold">Follow me</h1>
 

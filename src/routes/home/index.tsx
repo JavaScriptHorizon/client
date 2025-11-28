@@ -10,9 +10,11 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+
+// --- 1. Externalized and Typed Data ---
+
 const chartData = [
   { browser: "js", visitors: 280, fill: "var(--color-js)" },
   { browser: "react", visitors: 200, fill: "var(--color-react)" },
@@ -26,9 +28,6 @@ const chartConfig = {
   visitors: {
     label: "Visitors",
   },
-
-  html: { label: "HTML", color: "#E44D26" },
-  css: { label: "CSS", color: "#1572B6" },
   js: { label: "JavaScript", color: "#F7DF1E" },
   react: { label: "React.js", color: "#61DAFB" },
   next: { label: "Next.js", color: "#000000" },
@@ -37,86 +36,154 @@ const chartConfig = {
   postgres: { label: "PostgreSQL", color: "#336791" },
 } satisfies ChartConfig;
 
-const Hero = () => {
-  const arr_detl = [
-    {
-      icon: "",
-      title: "",
-      description: "",
-      className: "md:col-span-2",
-      card: "p-0",
-      children: (
-        <>
-          <video
-            src={`${videoPro}#t=1`}
-            controls
-            controlsList="nodownload noremoteplayback noplaybackrate"
-            disablePictureInPicture
-            disableRemotePlayback
-            preload="metadata"
-            playsInline
-            className="w-full h-full object-cover rounded-lg bg-background"
-          />
-        </>
-      ),
-    },
-    {
-      icon: "",
-      title: "",
-      description: "",
-      className: "",
-      card: "bg-primary/5 border border-primary/20",
-      children: (
-        <CardContent className="space-y-2">
-          <h2 className="text-xl font-semibold">My Message</h2>
-          <p className="text-muted-foreground text-sm">
-            I believe that real success comes from consistency — showing up
-            every day, learning, building, and pushing one step further.
-          </p>
-          <p className="text-muted-foreground text-sm">
-            My goal is to create meaningful digital experiences that inspire
-            growth, help others learn, and make technology feel simple and
-            human.
-          </p>
-          <p className="text-muted-foreground text-sm">
-            If my work touches even one person or makes their path clearer, then
-            I’m on the right journey.
-          </p>
-          <h1 className=" absolute top-0 translate-y-8 right-2 pointer-events-none text-[60px] leading-0 text-muted-foreground/50">
-            @
-          </h1>
-        </CardContent>
-      ),
-    },
-    {
-      icon: "",
-      title: "",
-      description: "",
-      className: "",
-      card: "p-4",
-      children: (
-        <>
-          <h2 className="text-2xl font-extralight">Chart & Skills</h2>
-          <ChartRadialLabel chartConfig={chartConfig} chartData={chartData} />
-          <p className="text-muted-foreground">@2026</p>
-        </>
-      ),
-    },
-  ];
+const heroDetails = [
+  {
+    className: "md:col-span-2",
+    card: "p-0",
+    children: (
+      <>
+        {/* Added poster for better perceived load performance */}
+        <video
+          src={`${videoPro}#t=1`}
+          poster="/img/video-poster.jpg"
+          controls
+          controlsList="nodownload noremoteplayback noplaybackrate"
+          disablePictureInPicture
+          disableRemotePlayback
+          preload="metadata"
+          playsInline
+          className="w-full h-full object-cover rounded-lg bg-background"
+        />
+      </>
+    ),
+  },
+  {
+    card: "bg-primary/5 border border-primary/20 backdrop-blur-3xl",
+    children: (
+      <CardContent className="space-y-2">
+        <h2 className="text-xl font-semibold">My Message</h2>
+        <p className="text-muted-foreground text-sm">
+          I believe that real success comes from **consistency** — showing up
+          every day, learning, building, and pushing one step further.
+        </p>
+        <p className="text-muted-foreground text-sm">
+          My goal is to create meaningful digital experiences that inspire
+          growth, help others learn, and make technology feel simple and human.
+        </p>
+        <p className="text-muted-foreground text-sm">
+          If my work touches even one person or makes their path clearer, then
+          I’m on the right journey.
+        </p>
+        <h1 className=" absolute top-0 translate-y-8 right-2 pointer-events-none text-[60px] leading-0 text-primary">
+          @
+        </h1>
+      </CardContent>
+    ),
+  },
+  {
+    card: "p-4",
+    children: (
+      <>
+        <h2 className="text-2xl font-extralight">Chart & Skills</h2>
+        <ChartRadialLabel chartConfig={chartConfig} chartData={chartData} />
+        <p className="text-muted-foreground text-sm">
+          @{new Date().getFullYear()}
+        </p>
+      </>
+    ),
+  },
+];
 
+interface Project {
+  title: string;
+  description: string;
+  url: string;
+  image?: string;
+}
+
+const PLACEHOLDER_PROJECTS: Project[] = [
+  {
+    title: "Project Alpha",
+    description:
+      "A comprehensive e-learning platform built with Next.js and PostgreSQL.",
+    url: "project-alpha",
+    image: "/placeholder.jpg",
+  },
+  {
+    title: "Project Beta",
+    description:
+      "An advanced state management demo using React and TypeScript.",
+    url: "project-beta",
+    image: "/placeholder.jpg",
+  },
+  {
+    title: "Project Gamma",
+    description: "A RESTful API service developed with Node.js and Express.",
+    url: "project-gamma",
+    image: "/placeholder.jpg",
+  },
+];
+
+// --- Section Component (Refined) ---
+
+interface SectionProps extends React.HTMLAttributes<HTMLElement> {
+  className?: string;
+  title?: string;
+  description?: string;
+  children?: React.ReactNode;
+}
+
+const Section = ({
+  className,
+  children,
+  title,
+  description,
+  ...props
+}: SectionProps) => (
+  <motion.section
+    {...props}
+    initial={{ y: 60, opacity: 0, filter: "blur(8px)" }}
+    whileInView={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+    transition={{
+      duration: 0.5,
+      ease: "easeInOut",
+      type: "spring",
+      stiffness: 100,
+      damping: 10,
+    }}
+    viewport={{ once: true, amount: 0.1 }} // Increased viewport amount for smoother trigger
+    className={cn("py-12 space-y-8 relative", className)}
+  >
+    {(title || description) && (
+      <div className="space-y-4 text-center">
+        {title && <h2 className="text-3xl md:text-4xl font-bold">{title}</h2>}
+        {description && (
+          <p className="text-lg mx-auto text-muted-foreground max-w-2xl">
+            {description}
+          </p>
+        )}
+      </div>
+    )}
+    {children}
+  </motion.section>
+);
+
+// --- Hero Component ---
+
+const Hero = () => {
   return (
-    <Section>
-      <div className="py-4 flex items-center justify-between">
+    <Section className="pt-24 pb-16">
+      <div className="flex items-center justify-between ">
         <div className="space-y-4 max-w-xl">
           <motion.h2
             initial={{ y: -20, opacity: 0, filter: "blur(4px)" }}
             animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-            className="text-2xl md:text-3xl"
+            className="text-4xl md:text-5xl font-extrabold"
           >
             👋Hi, I’m{" "}
-            <span className="font-semibold text-primary">Mohamed Walid</span>.
+            <span className="font-extrabold text-primary">Mohamed Walid</span>.
           </motion.h2>
-          <p className="text-muted-foreground text-base">
+          <p className="text-muted-foreground text-lg">
             "
             {`Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugit
             consectetur voluptatum esse quisquam quam pariatur modi maxime est
@@ -139,44 +206,51 @@ const Hero = () => {
             "
           </p>
         </div>
-        <div>
-          <motion.div
-            initial={{ y: -50, opacity: 0, x: 50 }}
-            animate={{ y: 0, opacity: 1, x: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 10 }}
-            className="flex justify-center items-center size-24 text-chart-3 relative rounded-full hover:scale-110 transition-transform cursor-pointer"
+        {/* Redesigned 'Explore' to be a semantic Link */}
+        <motion.div
+          initial={{ y: -50, opacity: 0, x: 50 }}
+          animate={{ y: 0, opacity: 1, x: 0 }}
+          transition={{ type: "spring", stiffness: 100, damping: 10 }}
+          className="hidden md:block"
+        >
+          <a
+            href="#contact"
+            aria-label="Explore my profile and contact information"
+            className="flex justify-center items-center size-28 text-chart-3 relative rounded-full hover:scale-110 transition-transform cursor-pointer group"
           >
-            <ArrowUpRight className="size-6" />
+            <ArrowUpRight className="size-8 group-hover:rotate-45 transition-transform" />
             {"explore".split("").map((char, index) => (
               <motion.span
                 key={index}
-                initial={{ y: 0, rotate: (index + 1) * 40 }}
-                animate={{ y: [0, -10, 0] }}
+                initial={{ rotate: index * 45 - 90 }} // Initial rotation for circle placement
+                animate={{ rotate: [index * 45 - 90, index * 45 - 90 + 360] }} // Full rotation animation
                 transition={{
-                  duration: 1,
+                  duration: 8,
                   repeat: Infinity,
-                  delay: index * 0.1,
+                  ease: "linear",
+                  delay: index * 0.05,
                 }}
-                className="absolute h-full"
+                className="absolute h-[120%] origin-bottom-center"
+                style={{ top: "-10%" }}
               >
                 {char}
               </motion.span>
             ))}
-          </motion.div>
-        </div>
+          </a>
+        </motion.div>
       </div>
       <div className="min-h-[26rem] grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 relative">
-        {arr_detl.map((item, idx) => (
+        {heroDetails.map((item, idx) => (
           <motion.div
             key={idx}
-            className={cn("rounded-lg", item.className)}
+            className={cn("rounded-xl", item.className)}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: idx * 0.2, duration: 0.5 }}
           >
             <Card
               className={cn(
-                "h-full w-full flex flex-col justify-center items-center relative",
+                "h-full w-full flex flex-col justify-center items-center relative rounded-xl",
                 item.card
               )}
             >
@@ -185,51 +259,62 @@ const Hero = () => {
           </motion.div>
         ))}
       </div>
+
+      <img
+        src="/img/image-h.svg"
+        className="w-full h-auto absolute top-0 pointer-events-none -z-10"
+      />
     </Section>
   );
 };
 
+// --- About Component ---
+
 const About = () => (
   <Section
-    title="About"
-    className="bg-linear-[240deg] px-4 from-chart-3/50 to-90% from-80% to-chart-3 rounded-lg flex flex-col items-center text-center"
+    title="About Me"
+    className="bg-primary/5 border border-primary/10 rounded-xl flex flex-col items-center text-center px-6"
   >
-    <p className="max-w-xl">
-      I’m Mohamed Walid, a full‑stack web developer specializing in building
+    <p className="max-w-xl text-lg">
+      I’m **Mohamed Walid**, a full‑stack web developer specializing in building
       modern educational platforms and beautiful user experiences.
     </p>
-    <details className=" open:animate-fadeIn w-full max-w-2xl">
-      <summary className="cursor-pointer mt-2 text-primary underline  decoration-2 underline-offset-4">
-        Read more
+    <details className=" open:animate-fadeIn w-full max-w-2xl mt-4">
+      <summary className="cursor-pointer text-primary underline decoration-2 underline-offset-4 font-medium">
+        Read more about my journey
       </summary>
-      <p className="mt-2 max-w-xl text-center mx-auto">
-        With a strong foundation in both front-end and back-end technologies, I
-        create seamless and efficient web applications. My expertise includes
-        React, Node.js, and database management, allowing me to deliver
-        comprehensive solutions that meet client needs. I am passionate about
-        learning new technologies and continuously improving my skills to stay
-        ahead in the ever-evolving web development landscape.
+      <p className="mt-4 max-w-xl text-center mx-auto text-muted-foreground">
+        With a strong foundation in both front-end (React, Next.js) and back-end
+        (Node.js, Express, PostgreSQL) technologies, I create seamless and
+        efficient web applications. My passion lies in delivering comprehensive
+        solutions that are highly performant and user-centric. I am passionate
+        about learning new technologies and continuously improving my skills to
+        stay ahead in the ever-evolving web development landscape.
       </p>
     </details>
+    {/* Minor redesign for the decorative image/card */}
     <div className="size-20 md:size-28 absolute -top-8 right-8 pointer-events-none ">
-      <div className="size-full absolute -rotate-12 rounded-md overflow-hidden">
-        <img src="/img/tab.jpg" className="size-full object-cover" />
+      <div className="size-full absolute -rotate-12 rounded-lg overflow-hidden border-2 border-primary/50 shadow-lg">
+        <img
+          src="/img/tab.jpg"
+          alt="A laptop screen displaying code"
+          className="size-full object-cover"
+        />
       </div>
-      <div className="size-full bg-primary rounded-lg" />
     </div>
   </Section>
 );
 
-const Projects = () => {
-  const [projects, setProjects] = useState<
-    { title: string; description: string; url: string; image?: string }[]
-  >([]);
+// --- Projects Component ---
 
+const Projects = () => {
+  const [projects, setProjects] = useState<Project[]>(PLACEHOLDER_PROJECTS);
+
+  // Original fetch logic commented out, using placeholder data for display
   // useEffect(() => {
   //   const fetched = async () => {
   //     try {
   //       const res = await axios.get("/api/projects");
-
   //       if (res.status === 200) {
   //         setProjects(res.data);
   //       }
@@ -243,27 +328,27 @@ const Projects = () => {
 
   return (
     <Section
-      title="Projects"
-      description="Show 5 Popular projects"
+      title="Recent Projects"
+      description="A selection of my most recent and popular work."
       className="text-center"
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {projects.length > 0 ? (
           projects.map((p, idx) => (
             <Card
               key={idx}
-              className="bg-transparent hover:bg-chart-3/50 transition-all"
+              className="bg-transparent hover:bg-chart-3/50 transition-all text-left rounded-xl shadow-lg border-primary/20"
             >
-              <CardHeader>
+              <CardHeader className="p-0">
                 <img
                   src={p.image || "/placeholder.jpg"}
-                  alt={p.title}
-                  className="w-full h-64 rounded-lg object-cover"
+                  alt={`Cover image for ${p.title}`}
+                  className="w-full h-48 rounded-t-xl object-cover"
                 />
               </CardHeader>
 
-              <CardContent>
-                <h3 className="font-semibold text-lg">{p.title}</h3>
+              <CardContent className="pt-4">
+                <h3 className="font-bold text-xl">{p.title}</h3>
                 <p className="text-muted-foreground text-sm mt-2">
                   {p.description}
                 </p>
@@ -272,21 +357,22 @@ const Projects = () => {
               <CardFooter>
                 <Link
                   to={`/projects/${p.url}`}
-                  className="inline-block mt-4 text-primary text-sm underline hover:no-underline"
+                  className=" text-primary font-medium flex items-center gap-1 hover:gap-2 transition-all"
                 >
-                  View Project →
+                  View Project <ArrowUpRight className="size-4" />
                 </Link>
               </CardFooter>
             </Card>
           ))
         ) : (
-          <div className="w-full py-10 col-span-3 flex flex-col items-center justify-center rounded-xl border border-primary/30 bg-muted/20 animate-pulse">
+          <div className="w-full py-10 col-span-3 flex flex-col items-center justify-center rounded-xl border border-primary/30 bg-muted/20">
             <svg
-              className="w-10 h-10 text-primary mb-3"
+              className="w-10 h-10 text-primary mb-3 animate-bounce"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.5"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -294,71 +380,39 @@ const Projects = () => {
                 d="M9 12h6m2 0a2 2 0 10-4 0 2 2 0 004 0zm-4 0a2 2 0 11-4 0 2 2 0 014 0z"
               />
             </svg>
-            <p className="text-muted-foreground text-sm">No projects found</p>
+            <p className="text-muted-foreground text-sm">Loading projects...</p>
           </div>
         )}
       </div>
     </Section>
   );
 };
-const Contact = () => (
-  <Section title="Contact" className="flex flex-col items-center text-center">
-    <p className="text-muted-foreground max-w-md">
-      Feel free to get in touch anytime. I’m always open to discussing new
-      projects, collaborations, or opportunities.
-    </p>
 
+// --- Contact Component ---
+
+const Contact = () => (
+  <Section
+    title="Get in Touch"
+    description="Feel free to get in touch anytime. I’m always open to discussing new
+      projects, collaborations, or opportunities."
+    id="contact"
+    className="flex flex-col items-center text-center"
+  >
     <a
       href="mailto:javascripthorizon@gmail.com"
-      className="mt-3 flex items-center gap-2 text-primary font-medium underline underline-offset-4 hover:text-primary/80 transition"
+      className="mt-6 flex items-center gap-3 text-2xl text-primary font-bold underline underline-offset-8 hover:text-primary/80 transition"
     >
-      <MessageSquareCodeIcon className="size-6" />
+      <MessageSquareCodeIcon className="size-8" />
       <span>javascripthorizon@gmail.com</span>
     </a>
   </Section>
 );
 
-const Section = ({
-  className,
-  children,
-  title,
-  description,
-  ...props
-}: {
-  className?: string;
-  title?: string;
-  description?: string;
-  children?: React.ReactNode;
-  props?: React.HTMLAttributes<HTMLElement>;
-}) => (
-  <motion.section
-    {...props}
-    initial={{ y: 60, opacity: 0, filter: "blur(8px)" }}
-    whileInView={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-    transition={{
-      duration: 0.5,
-      ease: "easeInOut",
-      type: "spring",
-      stiffness: 100,
-      damping: 10,
-    }}
-    viewport={{ once: true }}
-    className={cn("py-12 space-y-4 relative", className)}
-    id={String(title?.toLowerCase())}
-  >
-    <div className="space-y-4">
-      {title && <h2 className="text-2xl md:text-3xl font-semibold">{title}</h2>}
-      {description && (
-        <p className="text-muted-foreground text-sm">{description}</p>
-      )}
-    </div>
-    {children}
-  </motion.section>
-);
+// --- Home Component ---
 
 const Home = () => {
   return (
-    <main className="space-y-3">
+    <main className="space-y-4">
       <Hero />
       <About />
       <Projects />
